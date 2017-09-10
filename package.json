@@ -22,9 +22,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "nunjucks": "3.0.1",
     "lodash": "4.17.4",
-    "mkdirp": "0.5.1"
+    "mkdirp": "0.5.1",
+    "nunjucks": "3.0.1",
+    "replace-ext": "^1.0.0"
   },
   "devDependencies": {
     "chai": "4.1.2",
