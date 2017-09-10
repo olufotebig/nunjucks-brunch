@@ -51,7 +51,7 @@ module.exports = class nunjucksBrunchPlugin
     try
       paths = [path.dirname templatePath]
       if @layoutPath
-        paths.push  path.resolve @templatePath
+        paths.push  path.resolve @layoutPath
       env = new nunjucks.Environment( new nunjucks.FileSystemLoader ( paths ) )
       template = env.render options.filename, options
     catch e
