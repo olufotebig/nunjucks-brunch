@@ -17,6 +17,7 @@ module.exports = class nunjucksBrunchPlugin
   templatePath: 'app/views'
   projectPath: path.resolve process.cwd()
   filePatterns: /^app(\/|\\)views(\/|\\).*.html$/
+
   constructor: ( @config ) ->
     @configure()
 
@@ -25,10 +26,13 @@ module.exports = class nunjucksBrunchPlugin
       options = @config?.plugins?.nunjucks or @config.plugins.nunjucks
     else
       options = {}
-
+    
     if options.filePatterns?
       @filePatterns = options.filePatterns
-      
+
+    if options.layoutPath?
+      @layoutPath = options.layoutPath
+
     if options.templatePath?
       @templatePath = options.templatePath
 
