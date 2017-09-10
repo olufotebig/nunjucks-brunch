@@ -1,5 +1,6 @@
 nunjucks = require 'nunjucks'
 fs = require 'fs'
+replaceExt = require('replace-ext');
 path = require 'path'
 mkdirp = require 'mkdirp'
 _ = require 'lodash'
@@ -7,15 +8,15 @@ _ = require 'lodash'
 module.exports = class nunjucksBrunchPlugin
   brunchPlugin: yes
   type: 'template'
-  extension: 'html'
+  pattern: /\.html?$/
   nunjucksOptions: {}
 
+  ext: no
+  layoutPath: no
   publicPath: 'public'
   templatePath: 'app/views'
   projectPath: path.resolve process.cwd()
-
   filePatterns: /^app(\/|\\)views(\/|\\).*.html$/
-
   constructor: ( @config ) ->
     @configure()
 
@@ -27,18 +28,27 @@ module.exports = class nunjucksBrunchPlugin
 
     if options.filePatterns?
       @filePatterns = options.filePatterns
-
+      
     if options.templatePath?
       @templatePath = options.templatePath
 
     if options.path?
       @publicPath = options.path
 
+    if options.pattern?
+      @pattern = options.pattern
+    
+    if options.ext?
+      @ext = options.ext
+
     @nunjucksOptions = _.omit options, 'filePatterns', 'path'
 
   templateFactory: ( templatePath, options, callback ) ->
     try
-      env = new nunjucks.Environment( new nunjucks.FileSystemLoader ( path.dirname templatePath ) )
+      paths = [path.dirname templatePath]
+      if @layoutPath
+        paths.push  path.resolve @templatePath
+      env = new nunjucks.Environment( new nunjucks.FileSystemLoader ( paths ) )
       template = env.render options.filename, options
     catch e
       error = e
@@ -62,6 +72,8 @@ module.exports = class nunjucksBrunchPlugin
       if relativePath.length
         publicPath = path.join @projectPath, @publicPath
         outputPath = relativePath.replace @templatePath, ''
+        if @ext
+          outputPath = replaceExt outputPath, @ext
         outputPath = path.join publicPath, outputPath
         outputDirectory = path.dirname outputPath
 
