@@ -1,5 +1,6 @@
 nunjucks = require 'nunjucks'
 fs = require 'fs'
+jsonfile = require('jsonfile');
 replaceExt = require('replace-ext');
 path = require 'path'
 mkdirp = require 'mkdirp'
@@ -11,6 +12,7 @@ module.exports = class nunjucksBrunchPlugin
   pattern: /\.html?$/
   nunjucksOptions: {}
 
+  dataDir: 'app/data'
   ext: no
   layoutPath: no
   publicPath: 'public'
@@ -27,6 +29,9 @@ module.exports = class nunjucksBrunchPlugin
     else
       options = {}
     
+    if options.dataDir?
+      @dataDir = options.dataDir
+
     if options.filePatterns?
       @filePatterns = options.filePatterns
 
@@ -48,12 +53,23 @@ module.exports = class nunjucksBrunchPlugin
     @nunjucksOptions = _.omit options, 'filePatterns', 'path'
 
   templateFactory: ( templatePath, options, callback ) ->
+    getDataForFile = (file) ->
+      dataPath = replaceExt(file, '.json')
+      try
+        dataJSON = jsonfile.readFileSync(dataPath)
+      catch e 
+        dataJSON = {}
+      return dataJSON;
+    
     try
       paths = [path.dirname templatePath]
       if @layoutPath
         paths.push  path.resolve @layoutPath
       env = new nunjucks.Environment( new nunjucks.FileSystemLoader ( paths ) )
-      template = env.render options.filename, options
+      dataPath = path.join  (path.resolve @dataDir), replaceExt((path.relative @templatePath, templatePath), '.json')      
+      ctx = getDataForFile(dataPath)
+
+      template = env.render options.filename, ctx
     catch e
       error = e
 
@@ -64,7 +80,6 @@ module.exports = class nunjucksBrunchPlugin
     # lets the template compile correctly when referencing other templates.
     templatePath = path.resolve originalPath
     relativePath = path.relative @projectPath, templatePath
-
     options = _.extend {}, @nunjucksOptions
     options.filename ?= path.basename relativePath
 
